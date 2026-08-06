@@ -104,6 +104,18 @@ export interface WeekendReminderSetting {
   lastTriggered?: string;
 }
 
+export interface SchoolSettings {
+  namaSekolah: string;
+  kepalaSekolah: string;
+  nipKepalaSekolah?: string;
+  namaGuru: string;
+  nipGuru?: string;
+  logoSekolah?: string;
+  alamatSekolah?: string;
+  tahunAjaran?: string;
+  kelas?: string;
+}
+
 export interface AppNotification {
   id: string;
   title: string;

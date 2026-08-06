@@ -17,6 +17,7 @@ import {
   CatatanGuruRecord,
   AppNotification,
   WeekendReminderSetting,
+  SchoolSettings,
 } from '../types';
 
 export type SyncStatus = 'connected' | 'syncing' | 'offline' | 'error';
@@ -238,6 +239,18 @@ const DEFAULT_WEEKEND_REMINDER: WeekendReminderSetting = {
   autoSendWhatsappHint: true,
 };
 
+const DEFAULT_SCHOOL_SETTINGS: SchoolSettings = {
+  namaSekolah: 'SD Negeri 1 Nusantara',
+  kepalaSekolah: 'Dr. Hj. Siti Aminah, M.Pd.',
+  nipKepalaSekolah: '19700510 199503 2 001',
+  namaGuru: 'Bpk. Rusnoto, S.Pd.SD',
+  nipGuru: '19850115 201001 1 002',
+  logoSekolah: '',
+  alamatSekolah: 'Jl. Ki Hajar Dewantara No. 45',
+  tahunAjaran: '2024/2025',
+  kelas: '5-A',
+};
+
 // Application ID scope for Firebase Firestore
 const APP_ID = 'jurnal-7kebiasaan-app';
 
@@ -384,6 +397,12 @@ export class CloudSyncService {
     await this.saveDoc('siswa', siswa);
   }
 
+  public static async saveSiswaBatch(siswaArray: Siswa[]): Promise<void> {
+    for (const s of siswaArray) {
+      await this.saveDoc('siswa', s);
+    }
+  }
+
   public static async deleteSiswa(nis: string): Promise<void> {
     const list = this.getSiswaList();
     const found = list.find((s) => s.nis === nis);
@@ -451,6 +470,15 @@ export class CloudSyncService {
     await this.saveDoc('settings', { id: 'weekend_reminder', ...setting });
   }
 
+  public static getSchoolSettings(): SchoolSettings {
+    return getLocal<SchoolSettings>('school_settings', DEFAULT_SCHOOL_SETTINGS);
+  }
+
+  public static async saveSchoolSettings(settings: SchoolSettings): Promise<void> {
+    setLocal('school_settings', settings);
+    await this.saveDoc('settings', { id: 'school_settings', ...settings });
+  }
+
   public static getNotifications(): AppNotification[] {
     return getLocal<AppNotification[]>('notifications', [
       {
@@ -501,6 +529,7 @@ export class CloudSyncService {
       penghubung: getLocal('penghubung', DEFAULT_PENGHUBUNG),
       catatan: getLocal('catatan', DEFAULT_CATATAN),
       weekend_reminder: getLocal('weekend_reminder', DEFAULT_WEEKEND_REMINDER),
+      school_settings: getLocal('school_settings', DEFAULT_SCHOOL_SETTINGS),
     };
     return JSON.stringify(fullData, null, 2);
   }
@@ -531,6 +560,10 @@ export class CloudSyncService {
       if (parsed.catatan && Array.isArray(parsed.catatan)) {
         setLocal('catatan', parsed.catatan);
         parsed.catatan.forEach((item: CatatanGuruRecord) => this.saveDoc('catatan', item));
+      }
+      if (parsed.school_settings) {
+        setLocal('school_settings', parsed.school_settings);
+        this.saveDoc('settings', { id: 'school_settings', ...parsed.school_settings });
       }
       return true;
     } catch (e) {

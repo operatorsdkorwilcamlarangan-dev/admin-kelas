@@ -2,7 +2,6 @@ import React from 'react';
 import {
   School,
   LogOut,
-  Cloud,
   CloudCheck,
   CloudOff,
   RefreshCw,
@@ -10,13 +9,14 @@ import {
   UserCheck,
   ShieldCheck,
 } from 'lucide-react';
-import { UserSession, AppNotification } from '../types';
+import { UserSession, AppNotification, SchoolSettings } from '../types';
 import { SyncStatus } from '../services/cloudSync';
 
 interface HeaderProps {
   currentUser: UserSession;
   syncStatus: SyncStatus;
   notifications: AppNotification[];
+  schoolSettings?: SchoolSettings;
   onLogout: () => void;
   onOpenSyncModal: () => void;
   onOpenNotificationModal: () => void;
@@ -26,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   syncStatus,
   notifications,
+  schoolSettings,
   onLogout,
   onOpenSyncModal,
   onOpenNotificationModal,
@@ -75,15 +76,25 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-600 to-indigo-700 text-white flex items-center justify-center font-bold shadow-md shadow-sky-600/20">
-            <School className="w-5 h-5" />
-          </div>
+          {schoolSettings?.logoSekolah ? (
+            <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center p-1 shrink-0">
+              <img
+                src={schoolSettings.logoSekolah}
+                alt="Logo Sekolah"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-600 to-indigo-700 text-white flex items-center justify-center font-bold shadow-md shadow-sky-600/20 shrink-0">
+              <School className="w-5 h-5" />
+            </div>
+          )}
           <div>
-            <h1 className="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight">
-              EduAdmin 7 Kebiasaan
+            <h1 className="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base leading-tight truncate max-w-[200px] sm:max-w-xs">
+              {schoolSettings?.namaSekolah || 'EduAdmin 7 Kebiasaan'}
             </h1>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Jurnal Kebiasaan, Presensi & Tabungan Siswa
+              {schoolSettings?.kelas ? `Kelas ${schoolSettings.kelas} • ` : ''}Jurnal Kebiasaan, Presensi & Tabungan
             </p>
           </div>
         </div>

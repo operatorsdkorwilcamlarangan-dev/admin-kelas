@@ -287,7 +287,12 @@ export const RekapKebiasaanBulanan: React.FC<RekapKebiasaanBulananProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {siswaList.map((siswa) => {
+              {(isGuru
+                ? selectedSiswaNis === 'ALL'
+                  ? siswaList
+                  : siswaList.filter((s) => s.nis === selectedSiswaNis)
+                : siswaList.filter((s) => s.nis === currentUserNis)
+              ).map((siswa) => {
                 const sRecords = monthRecords.filter((k) => k.siswaId === siswa.nis);
                 const sSummary = calculateHabitSummary(sRecords);
 

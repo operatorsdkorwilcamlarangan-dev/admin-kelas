@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Printer, Download, Calendar, School, CheckCircle2, Award, FileText } from 'lucide-react';
+import { Printer, Download, Calendar, School, FileText } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
-import { Siswa, AbsensiRecord, KebiasaanRecord, TabunganRecord } from '../types';
+import { Siswa, AbsensiRecord, KebiasaanRecord, TabunganRecord, SchoolSettings, Role } from '../types';
 import { calculateHabitSummary } from '../data/habitData';
 
 interface RekapBulananPDFViewProps {
@@ -9,6 +9,9 @@ interface RekapBulananPDFViewProps {
   absensiList: AbsensiRecord[];
   kebiasaanList: KebiasaanRecord[];
   tabunganList: TabunganRecord[];
+  schoolSettings?: SchoolSettings;
+  currentUserRole?: Role;
+  currentUserNis?: string;
 }
 
 export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
@@ -16,12 +19,25 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
   absensiList,
   kebiasaanList,
   tabunganList,
+  schoolSettings,
+  currentUserRole = 'guru',
+  currentUserNis,
 }) => {
+  const isGuru = currentUserRole === 'guru';
+  const [selectedSiswaNis, setSelectedSiswaNis] = useState<string>(
+    isGuru ? 'ALL' : currentUserNis || 'ALL'
+  );
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toISOString().slice(0, 7)
   );
   const [isExporting, setIsExporting] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+
+  const displayedSiswaList = isGuru
+    ? selectedSiswaNis === 'ALL'
+      ? siswaList
+      : siswaList.filter((s) => s.nis === selectedSiswaNis)
+    : siswaList.filter((s) => s.nis === currentUserNis);
 
   const monthAbsensi = absensiList.filter((a) => a.tanggal.startsWith(selectedMonth));
   const monthKebiasaan = kebiasaanList.filter((k) => k.tanggal.startsWith(selectedMonth));
@@ -67,6 +83,24 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {isGuru && (
+            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+              <span className="text-slate-500 font-semibold">Pilih Siswa:</span>
+              <select
+                value={selectedSiswaNis}
+                onChange={(e) => setSelectedSiswaNis(e.target.value)}
+                className="bg-transparent font-bold text-slate-800 dark:text-slate-100 focus:outline-none"
+              >
+                <option value="ALL">Semua Siswa (Seluruh Kelas)</option>
+                {siswaList.map((s) => (
+                  <option key={s.nis} value={s.nis}>
+                    {s.nama} ({s.nis})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
             <Calendar className="w-4 h-4 text-slate-400" />
             <input
@@ -104,25 +138,41 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
       >
         {/* KOP Surat Header */}
         <div className="text-center border-b-2 border-slate-900 pb-4 space-y-1">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xl">
-              <School className="w-6 h-6" />
-            </div>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            {schoolSettings?.logoSekolah ? (
+              <img
+                src={schoolSettings.logoSekolah}
+                alt="Logo Sekolah"
+                className="w-14 h-14 object-contain"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xl">
+                <School className="w-6 h-6" />
+              </div>
+            )}
             <div className="text-left">
-              <h2 className="text-base font-extrabold uppercase tracking-wide">
+              <h2 className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
                 DINAS PENDIDIKAN & KEBUDAYAAN
               </h2>
-              <h1 className="text-lg font-black uppercase text-sky-800">
-                SD NEGERI KELAS UNGGULAN 5-A
+              <h1 className="text-lg font-black uppercase text-sky-900">
+                {schoolSettings?.namaSekolah || 'SD NEGERI KELAS UNGGULAN 5-A'}
               </h1>
+              <p className="text-[10px] text-slate-500 font-medium">
+                {schoolSettings?.kelas ? `Kelas: ${schoolSettings.kelas} • ` : ''}
+                {schoolSettings?.tahunAjaran ? `Tahun Ajaran: ${schoolSettings.tahunAjaran}` : ''}
+              </p>
             </div>
           </div>
           <p className="text-[11px] text-slate-600">
-            Jl. Pendidikan No. 45 • Telp: (021) 555-0199 • Email: info@sekolah.sch.id
+            {schoolSettings?.alamatSekolah || 'Jl. Pendidikan No. 45 • Telp: (021) 555-0199'}
           </p>
           <div className="pt-2">
             <h3 className="text-sm font-bold uppercase tracking-wider bg-slate-100 py-1.5 border border-slate-300">
-              LAPORAN EVALUASI BULANAN SISWA — PERIODE: {selectedMonth}
+              LAPORAN EVALUASI BULANAN SISWA{' '}
+              {displayedSiswaList.length === 1
+                ? `(${displayedSiswaList[0].nama} - NIS: ${displayedSiswaList[0].nis})`
+                : ''}{' '}
+              — PERIODE: {selectedMonth}
             </h3>
           </div>
         </div>
@@ -130,7 +180,7 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
         {/* Section 1: Ringkasan Absensi & Presensi */}
         <div className="space-y-3">
           <h4 className="text-xs font-bold uppercase border-b border-slate-300 pb-1 text-slate-800">
-            I. Rekapitulasi Kehadiran & Presensi Kelas
+            I. Rekapitulasi Kehadiran & Presensi
           </h4>
           <table className="w-full text-[11px] text-left border-collapse border border-slate-300">
             <thead>
@@ -146,7 +196,7 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {siswaList.map((s, idx) => {
+              {displayedSiswaList.map((s, idx) => {
                 const sAbs = monthAbsensi.filter((a) => a.nis === s.nis);
                 const h = sAbs.filter((a) => a.status === 'Hadir').length;
                 const sakit = sAbs.filter((a) => a.status === 'Sakit').length;
@@ -189,7 +239,7 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {siswaList.map((s, idx) => {
+              {displayedSiswaList.map((s, idx) => {
                 const sRecords = monthKebiasaan.filter((k) => k.siswaId === s.nis);
                 const sSum = calculateHabitSummary(sRecords);
 
@@ -232,7 +282,7 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {siswaList.map((s, idx) => {
+              {displayedSiswaList.map((s, idx) => {
                 const sTxs = monthTabungan.filter((t) => t.siswaId === s.nis);
                 const mSetor = sTxs.filter((t) => t.jenis === 'setor').reduce((a, b) => a + b.nominal, 0);
                 const mTarik = sTxs.filter((t) => t.jenis === 'tarik').reduce((a, b) => a + b.nominal, 0);
@@ -260,13 +310,37 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
         {/* Signature Blocks */}
         <div className="pt-10 flex justify-between items-end text-xs font-semibold">
           <div className="text-center space-y-12">
-            <p>Mengetahui,<br />Kepala Sekolah SD Negeri</p>
-            <p className="font-bold underline underline-offset-4">( Dr. Hj. Nurjanah, M.Pd )</p>
+            <p>
+              Mengetahui,<br />
+              Kepala Sekolah {schoolSettings?.namaSekolah || ''}
+            </p>
+            <div>
+              <p className="font-bold underline underline-offset-4">
+                ( {schoolSettings?.kepalaSekolah || 'Dr. Hj. Siti Aminah, M.Pd.'} )
+              </p>
+              {schoolSettings?.nipKepalaSekolah && (
+                <p className="text-[10px] text-slate-600 font-normal">
+                  NIP. {schoolSettings.nipKepalaSekolah}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="text-center space-y-12">
-            <p>Wali Kelas 5-A,<br />Guru Pembimbing</p>
-            <p className="font-bold underline underline-offset-4">( Rusnoto, S.Pd.SD )</p>
+            <p>
+              Wali Kelas {schoolSettings?.kelas || '5-A'},<br />
+              Guru Pembimbing
+            </p>
+            <div>
+              <p className="font-bold underline underline-offset-4">
+                ( {schoolSettings?.namaGuru || 'Bpk. Rusnoto, S.Pd.SD'} )
+              </p>
+              {schoolSettings?.nipGuru && (
+                <p className="text-[10px] text-slate-600 font-normal">
+                  NIP. {schoolSettings.nipGuru}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -45,6 +45,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     ? siswaList.find((s) => s.nis === currentUser.data.nis)
     : null;
 
+  const studentAbsensiToday = studentUser
+    ? absensiToday.find((a) => a.nis === studentUser.nis)
+    : null;
+
+  const studentKebiasaanToday = studentUser
+    ? kebiasaanToday.find((k) => k.siswaId === studentUser.nis)
+    : null;
+
+  const displayedSiswaList = isGuru
+    ? siswaList
+    : siswaList.filter((s) => s.nis === currentUser.data.nis);
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Welcome Hero Banner */}
@@ -110,9 +122,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <CalendarCheck className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Kehadiran Hari Ini</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {isGuru ? 'Kehadiran Hari Ini' : 'Status Presensi Anda'}
+            </p>
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-              {totalHadirToday} / {totalSiswa} Hadir
+              {isGuru
+                ? `${totalHadirToday} / ${totalSiswa} Hadir`
+                : studentAbsensiToday?.status || 'Hadir'}
             </h3>
           </div>
         </div>
@@ -139,7 +155,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400">Checklist 7 Kebiasaan</p>
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-              {kebiasaanToday.length} Terisi Hari Ini
+              {isGuru
+                ? `${kebiasaanToday.length} Terisi Hari Ini`
+                : studentKebiasaanToday
+                ? 'Terisi Hari Ini'
+                : 'Belum Diisi'}
             </h3>
           </div>
         </div>
@@ -170,13 +190,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <ArrowRight className="w-4 h-4 shrink-0" />
             </button>
 
-            <button
-              onClick={() => onNavigate('notifikasi_keuangan')}
-              className="w-full p-3 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 rounded-xl text-left font-semibold text-purple-800 dark:text-purple-300 flex items-center justify-between transition-colors"
-            >
-              <span>3. Pengingat Progres Keuangan Akhir Pekan</span>
-              <ArrowRight className="w-4 h-4 shrink-0" />
-            </button>
+            {isGuru && (
+              <button
+                onClick={() => onNavigate('notifikasi_keuangan')}
+                className="w-full p-3 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 rounded-xl text-left font-semibold text-purple-800 dark:text-purple-300 flex items-center justify-between transition-colors"
+              >
+                <span>3. Pengingat Progres Keuangan Akhir Pekan</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -184,7 +206,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="lg:col-span-2 p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-600" /> Status Tabungan & 7 Kebiasaan Siswa
+              <TrendingUp className="w-4 h-4 text-emerald-600" />{' '}
+              {isGuru ? 'Status Tabungan & 7 Kebiasaan Siswa' : 'Status Tabungan & 7 Kebiasaan Anda'}
             </h4>
             <button
               onClick={() => onNavigate('rekap_tabungan')}
@@ -205,7 +228,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {siswaList.map((s) => {
+                {displayedSiswaList.map((s) => {
                   const keb = kebiasaanToday.find((k) => k.siswaId === s.nis);
                   const abs = absensiToday.find((a) => a.nis === s.nis);
 

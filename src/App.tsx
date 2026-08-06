@@ -9,6 +9,7 @@ import {
   UserSession,
   AppNotification,
   Role,
+  SchoolSettings,
 } from './types';
 import { CloudSyncService, SyncStatus } from './services/cloudSync';
 import { Header } from './components/Header';
@@ -27,6 +28,7 @@ import { ManajemenSiswaView } from './components/ManajemenSiswaView';
 import { RekapBulananPDFView } from './components/RekapBulananPDFView';
 import { NotifikasiKeuanganWeekend } from './components/NotifikasiKeuanganWeekend';
 import { CloudSyncModal } from './components/CloudSyncModal';
+import { PengaturanSekolahView } from './components/PengaturanSekolahView';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
@@ -46,6 +48,9 @@ export default function App() {
   const [penghubungList, setPenghubungList] = useState<BukuPenghubungRecord[]>([]);
   const [catatanList, setCatatanList] = useState<CatatanGuruRecord[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings>(() =>
+    CloudSyncService.getSchoolSettings()
+  );
 
   // Load state from CloudSyncService
   const loadAllData = async () => {
@@ -59,6 +64,7 @@ export default function App() {
     setPenghubungList(CloudSyncService.getPenghubungList());
     setCatatanList(CloudSyncService.getCatatanList());
     setNotifications(CloudSyncService.getNotifications());
+    setSchoolSettings(CloudSyncService.getSchoolSettings());
   };
 
   useEffect(() => {
@@ -130,6 +136,11 @@ export default function App() {
     setSiswaList(CloudSyncService.getSiswaList());
   };
 
+  const handleImportSiswaBatch = async (batch: Siswa[]) => {
+    await CloudSyncService.saveSiswaBatch(batch);
+    setSiswaList(CloudSyncService.getSiswaList());
+  };
+
   const handleDeleteSiswa = async (nis: string) => {
     await CloudSyncService.deleteSiswa(nis);
     setSiswaList(CloudSyncService.getSiswaList());
@@ -140,8 +151,22 @@ export default function App() {
     setNotifications(CloudSyncService.getNotifications());
   };
 
+  const handleSaveSchoolSettings = async (newSettings: SchoolSettings) => {
+    await CloudSyncService.saveSchoolSettings(newSettings);
+    setSchoolSettings(CloudSyncService.getSchoolSettings());
+  };
+
   if (!currentUser) {
-    return <LoginScreen siswaList={siswaList} onLogin={handleLogin} />;
+    return (
+      <LoginScreen
+        siswaList={siswaList}
+        onLoginSuccess={(session) => {
+          setCurrentUser(session);
+          localStorage.setItem('jurnal_current_user', JSON.stringify(session));
+        }}
+        onLogin={handleLogin}
+      />
+    );
   }
 
   return (
@@ -151,9 +176,14 @@ export default function App() {
         currentUser={currentUser}
         syncStatus={syncStatus}
         notifications={notifications}
+        schoolSettings={schoolSettings}
         onOpenSyncModal={() => setIsSyncModalOpen(true)}
         onLogout={handleLogout}
-        onMarkNotificationsRead={handleMarkNotificationsRead}
+        onOpenNotificationModal={() => {
+          if (currentUser.role === 'guru') {
+            setActiveTab('notifikasi_keuangan');
+          }
+        }}
       />
 
       {/* Main Layout Container */}
@@ -226,7 +256,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'notifikasi_keuangan' && (
+          {activeTab === 'notifikasi_keuangan' && currentUser.role === 'guru' && (
             <NotifikasiKeuanganWeekend
               siswaList={siswaList}
               tabunganList={tabunganList}
@@ -261,6 +291,9 @@ export default function App() {
               absensiList={absensiList}
               kebiasaanList={kebiasaanList}
               tabunganList={tabunganList}
+              schoolSettings={schoolSettings}
+              currentUserRole={currentUser.role}
+              currentUserNis={currentUser.data.nis}
             />
           )}
 
@@ -268,7 +301,15 @@ export default function App() {
             <ManajemenSiswaView
               siswaList={siswaList}
               onSaveSiswa={handleSaveSiswa}
+              onImportSiswaBatch={handleImportSiswaBatch}
               onDeleteSiswa={handleDeleteSiswa}
+            />
+          )}
+
+          {activeTab === 'pengaturan' && currentUser.role === 'guru' && (
+            <PengaturanSekolahView
+              settings={schoolSettings}
+              onSaveSettings={handleSaveSchoolSettings}
             />
           )}
         </main>

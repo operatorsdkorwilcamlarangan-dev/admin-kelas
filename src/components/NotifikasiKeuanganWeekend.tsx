@@ -236,7 +236,7 @@ export const NotifikasiKeuanganWeekend: React.FC<NotifikasiKeuanganWeekendProps>
                 <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
                   Kirim Pesan WhatsApp Pengingat Akhir Pekan
                 </h4>
-                <p class="text-xs text-slate-500">
+                <p className="text-xs text-slate-500">
                   Salin draf laporan kemajuan tabungan siswa untuk dikirim ke grup/WAG Orang Tua
                 </p>
               </div>

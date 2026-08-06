@@ -11,6 +11,7 @@ import {
   Bookmark,
   Printer,
   Users,
+  Settings,
 } from 'lucide-react';
 import { Role } from '../types';
 
@@ -28,11 +29,12 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'rekap_kebiasaan', label: 'Rekap 7 Kebiasaan', icon: BarChart2 },
   { id: 'tabungan', label: 'Tabungan Siswa', icon: Wallet },
   { id: 'rekap_tabungan', label: 'Rekap Tabungan', icon: Coins },
-  { id: 'notifikasi_keuangan', label: 'Pengingat Keuangan', icon: BellRing },
+  { id: 'notifikasi_keuangan', label: 'Pengingat Keuangan', icon: BellRing, guruOnly: true },
   { id: 'penghubung', label: 'Buku Penghubung', icon: MessageSquare },
   { id: 'catatan', label: 'Catatan Anekdot', icon: Bookmark },
   { id: 'rekap_pdf', label: 'Cetak Laporan PDF', icon: Printer },
   { id: 'manajemen_siswa', label: 'Data Siswa', icon: Users, guruOnly: true },
+  { id: 'pengaturan', label: 'Pengaturan Sekolah', icon: Settings, guruOnly: true },
 ];
 
 interface SidebarProps {
