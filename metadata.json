@@ -1,0 +1,6 @@
+{
+  "name": "Jurnal 7 Kebiasaan & Administrasi Kelas",
+  "description": "Sistem Jurnal 7 Kebiasaan Anak Indonesia Hebat, Rekap Tabungan Harian/Bulanan, Pengingat Keuangan Akhir Pekan, Cetak Laporan PDF, dan Sinkronisasi Cloud.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
