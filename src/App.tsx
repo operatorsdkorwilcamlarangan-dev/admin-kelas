@@ -26,6 +26,7 @@ import { BukuPenghubungView } from './components/BukuPenghubungView';
 import { CatatanAnekdotView } from './components/CatatanAnekdotView';
 import { ManajemenSiswaView } from './components/ManajemenSiswaView';
 import { RekapBulananPDFView } from './components/RekapBulananPDFView';
+import { RekapAbsensiView } from './components/RekapAbsensiView';
 import { NotifikasiKeuanganWeekend } from './components/NotifikasiKeuanganWeekend';
 import { CloudSyncModal } from './components/CloudSyncModal';
 import { PengaturanSekolahView } from './components/PengaturanSekolahView';
@@ -215,6 +216,16 @@ export default function App() {
               currentUserRole={currentUser.role}
               currentUserNis={currentUser.data.nis}
               onSaveAbsensi={handleSaveAbsensi}
+            />
+          )}
+
+          {activeTab === 'rekap_absensi' && (
+            <RekapAbsensiView
+              siswaList={siswaList}
+              absensiList={absensiList}
+              currentUserRole={currentUser.role}
+              currentUserNis={currentUser.data.nis}
+              onNavigate={(tabId) => setActiveTab(tabId)}
             />
           )}
 

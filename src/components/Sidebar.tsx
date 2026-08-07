@@ -2,6 +2,7 @@ import React from 'react';
 import {
   PieChart,
   CalendarCheck,
+  ClipboardCheck,
   CheckSquare,
   BarChart2,
   Wallet,
@@ -25,6 +26,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard Utama', icon: PieChart },
   { id: 'absensi', label: 'Absensi Harian', icon: CalendarCheck },
+  { id: 'rekap_absensi', label: 'Rekap Absensi', icon: ClipboardCheck },
   { id: 'kebiasaan', label: 'Input 7 Kebiasaan', icon: CheckSquare },
   { id: 'rekap_kebiasaan', label: 'Rekap 7 Kebiasaan', icon: BarChart2 },
   { id: 'tabungan', label: 'Tabungan Siswa', icon: Wallet },

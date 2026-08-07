@@ -219,6 +219,39 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
                 );
               })}
             </tbody>
+            <tfoot>
+              {(() => {
+                let totH = 0;
+                let totS = 0;
+                let totI = 0;
+                let totA = 0;
+                let totRec = 0;
+
+                displayedSiswaList.forEach((s) => {
+                  const sAbs = monthAbsensi.filter((a) => a.nis === s.nis);
+                  totH += sAbs.filter((a) => a.status === 'Hadir').length;
+                  totS += sAbs.filter((a) => a.status === 'Sakit').length;
+                  totI += sAbs.filter((a) => a.status === 'Izin').length;
+                  totA += sAbs.filter((a) => a.status === 'Alpa').length;
+                  totRec += sAbs.length;
+                });
+
+                const avgPct = totRec > 0 ? Math.round((totH / totRec) * 100) : 100;
+
+                return (
+                  <tr className="bg-slate-200 dark:bg-slate-700 font-extrabold uppercase text-[10px]">
+                    <td colSpan={3} className="p-2 border border-slate-300 text-center font-extrabold text-slate-800">
+                      JUMLAH TOTAL
+                    </td>
+                    <td className="p-2 border border-slate-300 text-center text-emerald-800 font-extrabold">{totH}</td>
+                    <td className="p-2 border border-slate-300 text-center text-amber-800 font-extrabold">{totS}</td>
+                    <td className="p-2 border border-slate-300 text-center text-sky-800 font-extrabold">{totI}</td>
+                    <td className="p-2 border border-slate-300 text-center text-rose-800 font-extrabold">{totA}</td>
+                    <td className="p-2 border border-slate-300 text-center font-extrabold">{avgPct}%</td>
+                  </tr>
+                );
+              })()}
+            </tfoot>
           </table>
         </div>
 
@@ -304,6 +337,38 @@ export const RekapBulananPDFView: React.FC<RekapBulananPDFViewProps> = ({
                 );
               })}
             </tbody>
+            <tfoot>
+              {(() => {
+                const totalSetor = displayedSiswaList.reduce((acc, s) => {
+                  const sTxs = monthTabungan.filter((t) => t.siswaId === s.nis);
+                  return acc + sTxs.filter((t) => t.jenis === 'setor').reduce((a, b) => a + b.nominal, 0);
+                }, 0);
+
+                const totalTarik = displayedSiswaList.reduce((acc, s) => {
+                  const sTxs = monthTabungan.filter((t) => t.siswaId === s.nis);
+                  return acc + sTxs.filter((t) => t.jenis === 'tarik').reduce((a, b) => a + b.nominal, 0);
+                }, 0);
+
+                const totalSaldo = displayedSiswaList.reduce((acc, s) => acc + (s.saldo || 0), 0);
+
+                return (
+                  <tr className="bg-slate-200 dark:bg-slate-700 font-extrabold uppercase text-[10px]">
+                    <td colSpan={2} className="p-2 border border-slate-300 text-center font-extrabold text-slate-800">
+                      JUMLAH TOTAL
+                    </td>
+                    <td className="p-2 border border-slate-300 text-right text-emerald-800 font-extrabold">
+                      Rp {totalSetor.toLocaleString('id-ID')}
+                    </td>
+                    <td className="p-2 border border-slate-300 text-right text-rose-800 font-extrabold">
+                      Rp {totalTarik.toLocaleString('id-ID')}
+                    </td>
+                    <td className="p-2 border border-slate-300 text-right text-slate-900 font-extrabold">
+                      Rp {totalSaldo.toLocaleString('id-ID')}
+                    </td>
+                  </tr>
+                );
+              })()}
+            </tfoot>
           </table>
         </div>
 
